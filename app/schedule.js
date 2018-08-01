@@ -49,6 +49,9 @@ class Schedule {
    * @return {string}
    */
   getModeForHour(time) {
+    if (typeof time === 'undefined') {
+      throw new Error('Required parameter time is missing');
+    }
     return (time < 7 || time >= 21) ? 'night' : 'day';
   }
 
@@ -69,6 +72,10 @@ class Schedule {
    * @return {boolean}
    */
   isTimeIncludes(time, from, to) {
+    if (time > 23) {
+      throw new Error('Time argument can not be bigger than 23 hours');
+    }
+
     if (from > to) {
       if (time >= from || (time >= 0 && time < to)) {
         return true;
@@ -200,6 +207,8 @@ class Schedule {
       this.hoursTable.sort(function (a, b) {
         return a.hour - b.hour;
       });
+
+
     }
   }
 

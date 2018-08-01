@@ -4,7 +4,7 @@
   "description": "В этом репозитории находятся материалы тестового задания по JavaScript для [14-й Школы разработки интерфейсов](https://academy.yandex.ru/events/frontend/shri_msk-2018-2) (осень 2018, Москва, Санкт-Петербург, Симферополь).",
   "main": "index.js",
   "scripts": {
-    "test": "eslint app"
+    "test": "eslint app && mocha --reporter nyan tests"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,9 @@
   "homepage": "https://github.com/KatyaMatya21/entrance-task-3-2#readme",
   "dependencies": {},
   "devDependencies": {
+    "assert": "^1.4.1",
     "eslint": "^5.2.0",
-    "eslint-config-htmlacademy": "^0.5.2"
+    "eslint-config-htmlacademy": "^0.5.2",
+    "mocha": "^5.2.0"
   }
 }
