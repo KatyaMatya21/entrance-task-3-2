@@ -22,7 +22,8 @@ const outputData = JSON.stringify(result, null, ' ');
 // Save JSON string into file
 fs.writeFile('data/output_new.json', outputData, function (error) {
   if (error) {
-    return console.log(error);
+    console.log(error);
+    return;
   }
   console.log('The file was saved!');
 });

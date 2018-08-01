@@ -46,7 +46,7 @@ class Schedule {
   /**
    * Gets mode of specific hour
    * @param {int} time
-   * @returns {string}
+   * @return {string}
    */
   getModeForHour(time) {
     return (time < 7 || time >= 21) ? 'night' : 'day';
@@ -55,7 +55,7 @@ class Schedule {
   /**
    * Gets rates matching specific hour
    * @param {int} hour
-   * @returns {*}
+   * @return {*}
    */
   getRatesForHour(hour) {
     return this.rates.filter((rate) => this.isTimeIncludes(hour, rate.from, rate.to));
@@ -66,7 +66,7 @@ class Schedule {
    * @param {int} time
    * @param {int} from
    * @param {int} to
-   * @returns {boolean}
+   * @return {boolean}
    */
   isTimeIncludes(time, from, to) {
     if (from > to) {
@@ -79,16 +79,16 @@ class Schedule {
       }
     }
     return false;
-  };
+  }
 
   /**
    * Retrieves record from hoursTable
    * @param {int} hour
-   * @returns {object}
+   * @return {object}
    */
   getHourItem(hour) {
     return this.hoursTable[this.hoursTable.findIndex((item) => item.hour === hour)];
-  };
+  }
 
   /**
    * Creates a sorted table with hours and rates
@@ -205,7 +205,7 @@ class Schedule {
 
   /**
    * Gets object with resulting info
-   * @returns {{schedule: {}, consumedEnergy: {}}}
+   * @return {{schedule: {}, consumedEnergy: {}}}
    */
   getSchedule() {
     let output = {
@@ -221,7 +221,7 @@ class Schedule {
     output.consumedEnergy.value = +this.totalMoneySpent.toFixed(3);
     let formattedDeviceMoneySpent = {...this.deviceMoneySpent};
 
-    for (var key in formattedDeviceMoneySpent) {
+    for (let key in formattedDeviceMoneySpent) {
       if (formattedDeviceMoneySpent.hasOwnProperty(key)) {
         formattedDeviceMoneySpent[key] = +formattedDeviceMoneySpent[key].toFixed(4);
       }
@@ -230,7 +230,7 @@ class Schedule {
     output.consumedEnergy.devices = formattedDeviceMoneySpent;
 
     // Add id = device name mapping for easier visualization
-    for(let device of this.devices) {
+    for (let device of this.devices) {
       output.devices[device.id] = device.name;
     }
 

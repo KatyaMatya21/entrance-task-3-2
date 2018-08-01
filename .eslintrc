@@ -8,7 +8,7 @@
   },
 
   "parserOptions": {
-    "ecmaVersion": 2017,
+    "ecmaVersion": 2018,
     "sourceType": "module"
   },
 
@@ -22,6 +22,7 @@
       "ignoreRestSiblings": false
     }],
     "quotes": [2, "single"],
-    "no-new": 0
+    "no-new": 0,
+    "no-console": 0
   }
 }
