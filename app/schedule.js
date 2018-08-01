@@ -55,7 +55,7 @@ class Schedule {
   /**
    * Gets rates matching specific hour
    * @param {int} hour
-   * @return {*}
+   * @return {array}
    */
   getRatesForHour(hour) {
     return this.rates.filter((rate) => this.isTimeIncludes(hour, rate.from, rate.to));
