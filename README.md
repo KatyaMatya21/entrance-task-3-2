@@ -6,4 +6,3 @@
 
 - [входные данные](./data/input.json)
 - [выходные данные](./data/output.json)
-
