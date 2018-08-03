@@ -132,30 +132,124 @@ class Schedule {
   }
 
   /**
-   * Creates a sorted table with resulting info
+   * Finds potentially available hours for the device to start working from
+   * @param {object} device
+   * @return {array}
+   */
+  getPotentialHours(device) {
+    // Copy hoursTable array
+    let availableHours = this.hoursTable.slice();
+
+    if (device['mode']) {
+      availableHours = this.hoursTable.filter(function (hour) {
+        return hour.mode === device.mode;
+      });
+    }
+
+    // Filter out hours without enough power
+    availableHours = availableHours.filter(function (hour) {
+      return hour.power >= device.power;
+    });
+
+    // Sort by price and time
+    availableHours.sort(function (a, b) {
+      return a.price - b.price || a.hour - b.hour;
+    });
+
+    return availableHours;
+  }
+
+  /**
+   * Filters out potentially available hours by simulating device running continuously
+   * for the specified duration equal to device power cycle
+   * @param {array} availableHours
+   * @param {object} device
+   * @return {array}
+   */
+  getReallyAvailableHours(availableHours, device) {
+    let availableContinuousHours = [];
+
+    for (let firstHour of availableHours) {
+      let startHoursNum = firstHour.hour;
+      let isHoursAvailable = true;
+      let hourTotalPrice = firstHour.price * device.power / 1000;
+
+      for (let i = 0; i < device.duration - 1; i++) {
+        let nextHour = startHoursNum + 1 + i;
+
+        if (nextHour >= 24) {
+          nextHour = nextHour - 24;
+        }
+
+        if (typeof device.mode !== 'undefined') {
+          if (this.getModeForHour(nextHour) !== device.mode) {
+            isHoursAvailable = false;
+            break;
+          }
+        }
+
+        if (this.getHourItem(nextHour).power < device.power) {
+          isHoursAvailable = false;
+          break;
+        }
+
+        hourTotalPrice += this.getHourItem(nextHour).price * device.power / 1000;
+      }
+
+      if (!isHoursAvailable) {
+        continue;
+      }
+
+      let calculatedHour = {...firstHour};
+      calculatedHour.totalPrice = hourTotalPrice;
+      availableContinuousHours.push(calculatedHour);
+    }
+
+    availableContinuousHours.sort(function (a, b) {
+      return a.totalPrice - b.totalPrice || a.hour - b.hour;
+    });
+
+    return availableContinuousHours;
+  }
+
+  /**
+   * Schedules a device running cycle into a schedule
+   * @param {object} startHour
+   * @param {object} device
+   */
+  scheduleDevice(startHour, device) {
+    for (let i = 0; i < device.duration; i++) {
+      let targetHour = startHour.hour + i;
+
+      // Handle midnight
+      if (targetHour >= 24) {
+        targetHour = targetHour - 24;
+      }
+
+      this.getHourItem(targetHour).power -= device.power;
+      this.getHourItem(targetHour).workers.push(device.name);
+      this.getHourItem(targetHour).workers_id.push(device.id);
+
+      this.totalMoneySpent += device.power / 1000 * this.getHourItem(targetHour).price;
+
+      if (typeof this.deviceMoneySpent[device.id] === 'undefined') {
+        this.deviceMoneySpent[device.id] = 0;
+      }
+      this.deviceMoneySpent[device.id] += device.power / 1000 * this.getHourItem(targetHour).price;
+    }
+
+    this.hoursTable.sort(function (a, b) {
+      return a.hour - b.hour;
+    });
+  }
+
+  /**
+   * Creates a sorted table with resulting schedule raw info
    */
   createSchedule() {
     for (let device of this.devicesTable) {
 
-      // Copy hoursTable array
-      let availableHours = this.hoursTable.slice();
-
-      if (device['mode']) {
-        availableHours = this.hoursTable.filter(function (hour) {
-          return hour.mode === device.mode;
-        });
-      }
-
-      // Filter out hours without enough power
-      availableHours = availableHours.filter(function (hour) {
-        return hour.power >= device.power;
-      });
-
-
-      // Sort by price and time
-      availableHours.sort(function (a, b) {
-        return a.price - b.price || a.hour - b.hour;
-      });
+      let availableHours = this.getPotentialHours(device);
 
       if (!availableHours.length) {
         this.errors.push('No more space available for ' + device.name);
@@ -167,75 +261,22 @@ class Schedule {
         continue;
       }
 
-      let didFindHours = false;
+      let availableContinuousHours = this.getReallyAvailableHours(availableHours, device);
 
-      for (let firstHour of availableHours) {
-
-        // Check for continuous hours available
-        let startHoursNum = firstHour.hour;
-        let isHoursAvailable = true;
-
-        for (let i = 0; i < device.duration - 1; i++) {
-          let nextHour = startHoursNum + 1 + i;
-          if (nextHour === 24) {
-            nextHour = 0;
-          }
-          if (typeof device.mode !== 'undefined') {
-            if (this.getModeForHour(nextHour) !== device.mode) {
-              isHoursAvailable = false;
-              break;
-            }
-            if (this.getHourItem(nextHour).power < device.power) {
-              isHoursAvailable = false;
-              break;
-            }
-          }
-        }
-
-        if (!isHoursAvailable) {
-          continue;
-        }
-
-        didFindHours = true;
-
-        for (let i = 0; i < device.duration; i++) {
-          let targetHour = firstHour.hour + i;
-
-          // Handle midnight
-          if (targetHour === 24) {
-            targetHour = 0;
-          }
-
-          this.getHourItem(targetHour).power -= device.power;
-          this.getHourItem(targetHour).workers.push(device.name);
-          this.getHourItem(targetHour).workers_id.push(device.id);
-
-          this.totalMoneySpent += device.power / 1000 * this.getHourItem(targetHour).price;
-
-          if (typeof this.deviceMoneySpent[device.id] === 'undefined') {
-            this.deviceMoneySpent[device.id] = 0;
-          }
-          this.deviceMoneySpent[device.id] += device.power / 1000 * this.getHourItem(targetHour).price;
-        }
-
-        break;
-      }
-
-      if (!didFindHours) {
-        this.errors.push('Not enough available countinuous hours for ' + device.name);
+      if (!availableContinuousHours.length) {
+        this.errors.push('Not enough available continuous hours for ' + device.name);
         continue;
       }
 
-      this.hoursTable.sort(function (a, b) {
-        return a.hour - b.hour;
-      });
+      let startHour = availableContinuousHours.shift();
 
+      this.scheduleDevice(startHour, device);
     }
   }
 
   /**
    * Gets object with resulting info
-   * @return {{schedule: {}, consumedEnergy: {}}}
+   * @return {object}
    */
   getSchedule() {
     let output = {
@@ -267,6 +308,10 @@ class Schedule {
     return output;
   }
 
+  /**
+   * Returns array of stored errors
+   * @return {array}
+   */
   getErrors() {
     return this.errors;
   }

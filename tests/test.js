@@ -205,7 +205,7 @@ describe('Schedule', function () {
         'name': 'Коллайдер',
         'power': 10000000,
         'duration': 1,
-        'mode': 'night'
+        'mode': 'night',
       });
       const schedule = new Schedule(sampleDataClone);
 
@@ -219,7 +219,7 @@ describe('Schedule', function () {
         'name': 'Коллайдер',
         'power': 10,
         'duration': 25,
-        'mode': 'day'
+        'mode': 'day',
       });
       const schedule = new Schedule(sampleDataClone);
 
@@ -235,15 +235,15 @@ describe('Schedule', function () {
           'name': 'Коллайдер 1',
           'power': 2000,
           'duration': 6,
-          'mode': 'night'
+          'mode': 'night',
         },
         {
           'id': 'FAAAAAABBBBBBXXXCCCCCCCCCC3',
           'name': 'Коллайдер 2',
           'power': 2000,
           'duration': 4,
-          'mode': 'night'
-        }
+          'mode': 'night',
+        },
       ];
       const schedule = new Schedule(sampleDataClone);
 
