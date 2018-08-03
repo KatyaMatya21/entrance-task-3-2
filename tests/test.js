@@ -226,7 +226,6 @@ describe('Schedule', function () {
       assert.equal(schedule.getErrors().length, 1);
     });
 
-
     it('should handle error for not available continuous hours', function () {
       let sampleDataClone = JSON.parse(JSON.stringify(sampleData));
       sampleDataClone.devices = [
@@ -248,6 +247,39 @@ describe('Schedule', function () {
       const schedule = new Schedule(sampleDataClone);
 
       assert.equal(schedule.getErrors().length, 1);
+    });
+
+  });
+
+  describe('createSchedule', function () {
+
+    it('LIKE A BOSS!!! \\>-</', function () {
+      const attempts = Math.floor(100 + Math.random() * (1000 + 1 - 100));
+      for (let k = 0; k < attempts; k++) {
+        let sampleDataClone = JSON.parse(JSON.stringify(sampleData));
+        const rnd = Math.floor(3 + Math.random() * (10 + 1 - 3));
+        sampleDataClone.devices = [];
+        for (let i = 0; i < rnd; i++) {
+          let device = {
+            'id': 'AAA' + Math.floor(111 + Math.random() * (999 + 1 - 111)),
+            'name': 'X-' + Math.floor(111 + Math.random() * (999 + 1 - 111)),
+            'power': Math.floor(50 + Math.random() * (1000 + 1 - 50)),
+            'duration': Math.floor(1 + Math.random() * (10 + 1 - 1)),
+          };
+          if (Math.floor(Math.random()) > 0.5) {
+            device['mode'] = 'night';
+          } else {
+            device['mode'] = 'day';
+          }
+          if (Math.floor(Math.random()) > 0.75) {
+            device['duration'] = 24;
+          }
+          sampleDataClone.devices.push(device);
+        }
+        const schedule = new Schedule(sampleDataClone);
+        const result = schedule.getSchedule();
+        assert.equal((result.consumedEnergy.value > 0), true);
+      }
     });
 
   });
