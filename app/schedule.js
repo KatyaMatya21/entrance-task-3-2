@@ -126,7 +126,7 @@ class Schedule {
   createDevicesTable() {
     this.devicesTable = this.devices.slice();
     this.devicesTable.sort(function (a, b) {
-      return a.duration === 24 ? -1 : (a.power * a.duration - b.power * b.duration);
+      return a.power * a.duration - b.power * b.duration;
     });
     this.devicesTable.reverse();
   }
@@ -167,20 +167,36 @@ class Schedule {
         continue;
       }
 
+      let didFindHours = false;
+
       for (let firstHour of availableHours) {
 
-        // Take device.duration records from available hours
-        let cHours = availableHours.slice(0, device.duration);
+        // Check for continuous hours available
+        let startHoursNum = firstHour.hour;
+        let isHoursAvailable = true;
 
-        if (cHours.length < device.duration) {
-          this.errors.push('Not enough continuously available hours for ' + device.name);
-          break;
+        for (let i = 0; i < device.duration - 1; i++) {
+          let nextHour = startHoursNum + 1 + i;
+          if (nextHour === 24) {
+            nextHour = 0;
+          }
+          if (typeof device.mode !== 'undefined') {
+            if (this.getModeForHour(nextHour) !== device.mode) {
+              isHoursAvailable = false;
+              break;
+            }
+            if (this.getHourItem(nextHour).power < device.power) {
+              isHoursAvailable = false;
+              break;
+            }
+          }
         }
 
-        // Check if there is enough space for continuous run of device
-        if (!cHours.every((h) => (h.power >= device.power))) {
+        if (!isHoursAvailable) {
           continue;
         }
+
+        didFindHours = true;
 
         for (let i = 0; i < device.duration; i++) {
           let targetHour = firstHour.hour + i;
@@ -201,13 +217,18 @@ class Schedule {
           }
           this.deviceMoneySpent[device.id] += device.power / 1000 * this.getHourItem(targetHour).price;
         }
+
         break;
+      }
+
+      if (!didFindHours) {
+        this.errors.push('Not enough available countinuous hours for ' + device.name);
+        continue;
       }
 
       this.hoursTable.sort(function (a, b) {
         return a.hour - b.hour;
       });
-
 
     }
   }
@@ -220,7 +241,7 @@ class Schedule {
     let output = {
       'schedule': {},
       'consumedEnergy': {},
-      'devices': {}
+      'devices': {},
     };
 
     for (let hour of this.hoursTable) {

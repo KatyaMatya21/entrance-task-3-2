@@ -154,4 +154,102 @@ describe('Schedule', function () {
 
   });
 
+  describe('createHoursTable', function () {
+    const schedule = new Schedule(sampleData);
+
+    it('should contain 24 hours', function () {
+      assert.equal(schedule.hoursTable.length, 24);
+    });
+
+    it('should not contain duplicates', function () {
+      let ar = [];
+      for (let item of schedule.hoursTable) {
+        assert.equal(ar.indexOf(item.hour), -1);
+        ar.push(item.hour);
+      }
+    });
+
+  });
+
+  describe('createDevicesTable', function () {
+    const schedule = new Schedule(sampleData);
+
+    it('should contain all devices', function () {
+      assert.equal(schedule.devices.length, sampleData.devices.length);
+    });
+
+    it('should contain all devices', function () {
+      let ar = [];
+      for (let item of schedule.devicesTable) {
+        assert.equal(ar.indexOf(item.id), -1);
+        ar.push(item.id);
+      }
+    });
+
+    it('should sort by total power consumption', function () {
+      let current = 999999;
+      for (let item of schedule.devicesTable) {
+        assert.equal(((item.power * item.duration) <= current), true);
+        current = item.power * item.duration;
+      }
+    });
+
+  });
+
+  describe('getErrors', function () {
+
+    it('should handle error for unavailable power', function () {
+      let sampleDataClone = JSON.parse(JSON.stringify(sampleData));
+      sampleDataClone.devices.push({
+        'id': '666',
+        'name': 'Коллайдер',
+        'power': 10000000,
+        'duration': 1,
+        'mode': 'night'
+      });
+      const schedule = new Schedule(sampleDataClone);
+
+      assert.equal(schedule.getErrors().length, 1);
+    });
+
+    it('should handle error for not available hours', function () {
+      let sampleDataClone = JSON.parse(JSON.stringify(sampleData));
+      sampleDataClone.devices.push({
+        'id': '666',
+        'name': 'Коллайдер',
+        'power': 10,
+        'duration': 25,
+        'mode': 'day'
+      });
+      const schedule = new Schedule(sampleDataClone);
+
+      assert.equal(schedule.getErrors().length, 1);
+    });
+
+
+    it('should handle error for not available continuous hours', function () {
+      let sampleDataClone = JSON.parse(JSON.stringify(sampleData));
+      sampleDataClone.devices = [
+        {
+          'id': 'FAAAAAABBBBBBXXXCCCCCCCCCC1',
+          'name': 'Коллайдер 1',
+          'power': 2000,
+          'duration': 6,
+          'mode': 'night'
+        },
+        {
+          'id': 'FAAAAAABBBBBBXXXCCCCCCCCCC3',
+          'name': 'Коллайдер 2',
+          'power': 2000,
+          'duration': 4,
+          'mode': 'night'
+        }
+      ];
+      const schedule = new Schedule(sampleDataClone);
+
+      assert.equal(schedule.getErrors().length, 1);
+    });
+
+  });
+
 });
