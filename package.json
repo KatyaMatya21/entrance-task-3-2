@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "eslint app/schedule.js && mocha --reporter nyan tests"
+    "test": "node node_modules/eslint/bin/eslint.js app/schedule.js && node node_modules/mocha/bin/mocha --reporter nyan tests"
   },
   "repository": {
     "type": "git",
